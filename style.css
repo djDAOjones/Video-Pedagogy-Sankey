@@ -1,0 +1,29 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 30px;
+  background: #f7f7fa;
+}
+#sankey-container {
+  margin-top: 30px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+#sankey {
+  width: 1200px;
+  height: 700px;
+}
+.node rect {
+  cursor: pointer;
+  shape-rendering: crispEdges;
+}
+.link {
+  fill: none;
+  stroke-opacity: 0.5;
+}
+#controls {
+  margin-bottom: 20px;
+}

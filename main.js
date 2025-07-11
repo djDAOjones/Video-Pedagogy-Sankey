@@ -1,0 +1,130 @@
+// main.js
+// v0.1: Load CSVs, join data, render 3-stage Sankey (Theories → Studies → Themes)
+
+// Utility to load multiple CSVs
+async function loadCSVs(paths) {
+  const results = await Promise.all(paths.map(path => d3.csv(path)));
+  return Object.fromEntries(paths.map((p, i) => [p.split('/').pop().replace('.csv',''), results[i]]));
+}
+
+// Prepare Sankey data structure
+function buildSankeyData(theories, studies, themes, theory_study, study_theme) {
+  // Assign node IDs
+  const nodes = [];
+  const nodeMap = {};
+  let idx = 0;
+
+  function addNode(item, type) {
+    const id = `${type}:${item.id}`;
+    if (!(id in nodeMap)) {
+      nodeMap[id] = idx++;
+      nodes.push({ ...item, type, nodeId: nodeMap[id] });
+    }
+    return nodeMap[id];
+  }
+
+  // Add all nodes
+  theories.forEach(t => addNode(t, 'theory'));
+  studies.forEach(s => addNode(s, 'study'));
+  themes.forEach(th => addNode(th, 'theme'));
+
+  // Links: Theories → Studies
+  const links1 = theory_study.map(row => ({
+    source: nodeMap[`theory:${row.theory_id}`],
+    target: nodeMap[`study:${row.study_id}`],
+    value: +row.strength || 1,
+    meta: row
+  }));
+
+  // Links: Studies → Themes
+  const links2 = study_theme.map(row => ({
+    source: nodeMap[`study:${row.study_id}`],
+    target: nodeMap[`theme:${row.theme_id}`],
+    value: +row.strength || 1,
+    meta: row
+  }));
+
+  return {
+    nodes,
+    links: links1.concat(links2)
+  };
+}
+
+function renderSankey({nodes, links}) {
+  const width = 1200, height = 700;
+  const svg = d3.select('#sankey');
+  svg.selectAll('*').remove();
+
+  const sankey = d3.sankey()
+    .nodeWidth(24)
+    .nodePadding(24)
+    .extent([[1, 1], [width - 1, height - 6]]);
+
+  const {nodes: sankeyNodes, links: sankeyLinks} = sankey({nodes: nodes.map(d => Object.assign({}, d)), links: links.map(d => Object.assign({}, d))});
+
+  // Draw links
+  svg.append('g')
+    .selectAll('path')
+    .data(sankeyLinks)
+    .join('path')
+      .attr('class', 'link')
+      .attr('d', d3.sankeyLinkHorizontal())
+      .attr('stroke', d => {
+        if (d.source.type === 'theory') return '#3b82f6';
+        if (d.source.type === 'study') return '#f59e42';
+        return '#aaa';
+      })
+      .attr('stroke-width', d => Math.max(1, d.width))
+      .attr('stroke-opacity', 0.5);
+
+  // Draw nodes
+  const node = svg.append('g')
+    .selectAll('g')
+    .data(sankeyNodes)
+    .join('g')
+      .attr('class', 'node')
+      .attr('transform', d => `translate(${d.x0},${d.y0})`);
+
+  node.append('rect')
+    .attr('height', d => d.y1 - d.y0)
+    .attr('width', d => d.x1 - d.x0)
+    .attr('fill', d => {
+      if (d.type === 'theory') return '#2563eb';
+      if (d.type === 'study') return '#f59e42';
+      if (d.type === 'theme') return '#10b981';
+      return '#888';
+    });
+
+  node.append('text')
+    .attr('x', 6)
+    .attr('y', d => (d.y1 - d.y0) / 2)
+    .attr('dy', '0.35em')
+    .attr('font-size', 14)
+    .attr('fill', '#222')
+    .text(d => d.name || d.label || d.id);
+}
+
+async function main() {
+  // Data file paths
+  const dataDir = 'data/';
+  const paths = [
+    dataDir + 'theories.csv',
+    dataDir + 'studies.csv',
+    dataDir + 'themes.csv',
+    dataDir + 'theory_study_connections.csv',
+    dataDir + 'study_theme_connections.csv',
+    dataDir + 'resource_links.csv'
+  ];
+  const csvs = await loadCSVs(paths);
+  // For now, ignore resource_links
+  const sankeyData = buildSankeyData(
+    csvs.theories,
+    csvs.studies,
+    csvs.themes,
+    csvs.theory_study_connections,
+    csvs.study_theme_connections
+  );
+  renderSankey(sankeyData);
+}
+
+main();
