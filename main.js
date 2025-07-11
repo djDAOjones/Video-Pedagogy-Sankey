@@ -13,12 +13,19 @@ function buildSankeyData(theories, studies, themes, theory_study, study_theme) {
   const nodes = [];
   const nodeMap = {};
   let idx = 0;
+  let errors = [];
 
   function addNode(item, type) {
-    const id = `${type}:${item.id}`;
+    // Use correct ID field
+    let rawId = (type === 'theory') ? item.theory_id : (type === 'study') ? item.study_id : (type === 'theme') ? item.theme_id : item.id;
+    if (!rawId) {
+      errors.push(`Missing ID for ${type} node: ${JSON.stringify(item)}`);
+      return null;
+    }
+    const id = `${type}:${rawId}`;
     if (!(id in nodeMap)) {
       nodeMap[id] = idx++;
-      nodes.push({ ...item, type, nodeId: nodeMap[id] });
+      nodes.push({ ...item, type, nodeId: nodeMap[id], id: rawId });
     }
     return nodeMap[id];
   }
@@ -29,20 +36,47 @@ function buildSankeyData(theories, studies, themes, theory_study, study_theme) {
   themes.forEach(th => addNode(th, 'theme'));
 
   // Links: Theories → Studies
-  const links1 = theory_study.map(row => ({
-    source: nodeMap[`theory:${row.theory_id}`],
-    target: nodeMap[`study:${row.study_id}`],
-    value: +row.strength || 1,
-    meta: row
-  }));
+  const links1 = theory_study.map(row => {
+    const source = nodeMap[`theory:${row.theory_id}`];
+    const target = nodeMap[`study:${row.study_id}`];
+    if (source === undefined || target === undefined) {
+      errors.push(`Invalid theory-study link: ${JSON.stringify(row)}`);
+    }
+    return {
+      source,
+      target,
+      value: +row.strength || 1,
+      meta: row
+    };
+  }).filter(l => l.source !== undefined && l.target !== undefined);
 
   // Links: Studies → Themes
-  const links2 = study_theme.map(row => ({
-    source: nodeMap[`study:${row.study_id}`],
-    target: nodeMap[`theme:${row.theme_id}`],
-    value: +row.strength || 1,
-    meta: row
-  }));
+  const links2 = study_theme.map(row => {
+    const source = nodeMap[`study:${row.study_id}`];
+    const target = nodeMap[`theme:${row.theme_id}`];
+    if (source === undefined || target === undefined) {
+      errors.push(`Invalid study-theme link: ${JSON.stringify(row)}`);
+    }
+    return {
+      source,
+      target,
+      value: +row.strength || 1,
+      meta: row
+    };
+  }).filter(l => l.source !== undefined && l.target !== undefined);
+
+  // Show errors if any
+  if (errors.length) {
+    let errorDiv = document.getElementById('sankey-errors');
+    if (!errorDiv) {
+      errorDiv = document.createElement('div');
+      errorDiv.id = 'sankey-errors';
+      errorDiv.style.color = 'red';
+      errorDiv.style.whiteSpace = 'pre-wrap';
+      document.getElementById('sankey-container').prepend(errorDiv);
+    }
+    errorDiv.textContent = 'Data errors:\n' + errors.join('\n');
+  }
 
   return {
     nodes,
