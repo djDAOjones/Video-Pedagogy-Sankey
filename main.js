@@ -108,23 +108,35 @@ async function main() {
   // Data file paths
   const dataDir = 'data/';
   const paths = [
-    dataDir + 'theories.csv',
-    dataDir + 'studies.csv',
-    dataDir + 'themes.csv',
-    dataDir + 'theory_study_connections.csv',
-    dataDir + 'study_theme_connections.csv',
-    dataDir + 'resource_links.csv'
+    dataDir + 'Sankey-Theories.csv',
+    dataDir + 'Sankey-Studies.csv',
+    dataDir + 'Sankey-Themes.csv',
+    dataDir + 'Sankey-Theory-Study-Connections.csv',
+    dataDir + 'Sankey-Study-Theme-Connections.csv',
+    dataDir + 'Sankey-Theme-Resources.csv'
   ];
-  const csvs = await loadCSVs(paths);
-  // For now, ignore resource_links
-  const sankeyData = buildSankeyData(
-    csvs.theories,
-    csvs.studies,
-    csvs.themes,
-    csvs.theory_study_connections,
-    csvs.study_theme_connections
-  );
-  renderSankey(sankeyData);
+  // Show loading status
+  const container = document.getElementById('sankey-container');
+  const status = document.createElement('div');
+  status.id = 'loading-status';
+  status.textContent = 'Loading data...';
+  container.prepend(status);
+  try {
+    const csvs = await loadCSVs(paths);
+    // For now, ignore resource_links
+    const sankeyData = buildSankeyData(
+      csvs['Sankey-Theories'],
+      csvs['Sankey-Studies'],
+      csvs['Sankey-Themes'],
+      csvs['Sankey-Theory-Study-Connections'],
+      csvs['Sankey-Study-Theme-Connections']
+    );
+    renderSankey(sankeyData);
+    status.remove();
+  } catch (err) {
+    status.textContent = 'Error loading data. Please check that all CSV files are present and named exactly as in the repository.';
+    console.error('Data loading error:', err);
+  }
 }
 
 main();
