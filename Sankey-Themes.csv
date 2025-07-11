@@ -1,0 +1,23 @@
+theme_id,short_name,long_name,category,description
+T001,Start before perfect,Prioritise intent over production value,Foundational,Starting is more valuable than excellence.
+T002,Align with assessment,Align content with assessment,Foundational,Ensure videos directly support assessment objectives.
+T003,Clarity and activity,Prioritise clarity and active learning,Foundational,"Use logical structure, clear explanations, and embed prompts for action or reflection."
+T004,Chunking,Chunk content within 6 minutes,Foundational,Keep videos concise to reduce cognitive load.
+T005,Learner autonomy,Make videos optional,Foundational,Cater for different preferences and allow choice.
+T006,Accessibility,Maintain accessibility standards,Foundational,"Include captions, ensure good audio and readable visuals."
+T007,Iterative improvement,Iterate and improve,Foundational,Gather feedback and refine future videos.
+T008,Audio and video quality,Obtain good sound and passable visuals,Higher Quality and Presence,Prioritise clear audio and acceptable visuals for better engagement.
+T009,Conversational tone,Informal and conversational tone,Higher Quality and Presence,"Use relaxed, human delivery style."
+T010,Show face,Show presenter’s face,Higher Quality and Presence,Enhances connection and presence.
+T011,Summarise,Summarise key points,Higher Quality and Presence,Reinforce learning with concise summaries.
+T012,Weekly updates,Deploy contextual update videos,Higher Quality and Presence,Short videos to provide orientation and continuity.
+T013,Visuals,Use visual content,Design Enhancements,"Diagrams, slides, or illustrations support understanding."
+T014,Demonstration,Use animation or demonstration,Design Enhancements,Movement helps show processes—even if roughly executed.
+T015,Interactivity,Use or pair with interactivity,Design Enhancements,Link with activities or use interactive video tools.
+T016,Cognitive load,Minimise extraneous load,Design Enhancements,Remove distractions and stay on message.
+T017,Universal Design,Adopt universal design principles,Design Enhancements,Follow UDL guidelines for inclusive access.
+T018,Reusability,Design video for reuse,Design Enhancements,Avoid time-sensitive references; make content evergreen.
+T019,Timestamps,Add timestamps,Further Enhancement,Improves navigation and supports searchability.
+T020,Strategic release,Release videos strategically,Further Enhancement,Time videos around key milestones or assessments.
+T021,Video feedback,Deliver feedback via screen capture,Other,Use video tools for individualised feedback.
+T022,Media assignments,Set digital media assignments,Other,"Encourage student-created videos, reflections, etc."
