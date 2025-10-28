@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 function StageSelector({ currentOrder, onChange }) {
   const [numStages, setNumStages] = useState(currentOrder.length)
@@ -25,7 +25,7 @@ function StageSelector({ currentOrder, onChange }) {
 
   const handlePresetSelect = (preset) => {
     setSelectedPreset(preset.name)
-    onChange(preset.order)
+    onChange([...preset.order]) // Create new array to ensure React detects change
   }
   
   const handleNumStagesChange = (num) => {

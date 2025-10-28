@@ -252,10 +252,17 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
 
   function handleNodeClick(node) {
     // Toggle focus on the clicked node
+    // Extract just the essential data to avoid circular references
     if (focusedNode && focusedNode.id === node.id) {
       setFocusedNode(null) // Clear focus if clicking the same node
     } else {
-      setFocusedNode(node) // Set focus on the new node
+      // Store only essential node data to avoid D3's circular references
+      setFocusedNode({
+        id: node.id,
+        node_class: node.node_class,
+        label_short: node.label_short,
+        label_long: node.label_long
+      })
     }
   }
 

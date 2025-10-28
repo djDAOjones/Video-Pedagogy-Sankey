@@ -68,11 +68,56 @@ export function filterData(rawData, filters, stageOrder) {
   // Step 5: Organize nodes by stage order (may filter out stages)
   const organizedNodes = organizeNodesByStage(filteredNodes, stageOrder)
   
-  // Step 6: Update links to only include those between organized nodes
+  // Step 6: Handle links based on stage configuration
+  let finalLinks = []
   const organizedNodeIds = new Set(organizedNodes.map(n => n.id))
-  const finalLinks = filteredLinks.filter(link =>
-    organizedNodeIds.has(link.source) && organizedNodeIds.has(link.target)
-  )
+  const nodeClassMap = new Map(organizedNodes.map(n => [n.id, n.node_class]))
+  
+  // Check if we need to create virtual links (when Theme is excluded)
+  if (stageOrder.length === 2 && !stageOrder.includes('Theme')) {
+    // Need to create virtual links between Theory and Study
+    const theoryToTheme = new Map() // Theory -> [Themes]
+    const themeToStudy = new Map() // Theme -> [Studies]
+    
+    // Build connection maps from original links
+    filteredLinks.forEach(link => {
+      const sourceClass = nodes.find(n => n.id === link.source)?.node_class
+      const targetClass = nodes.find(n => n.id === link.target)?.node_class
+      
+      if (sourceClass === 'Theory' && targetClass === 'Theme') {
+        if (!theoryToTheme.has(link.source)) theoryToTheme.set(link.source, [])
+        theoryToTheme.get(link.source).push({ theme: link.target, weight: link.weight })
+      } else if (sourceClass === 'Theme' && targetClass === 'Study') {
+        if (!themeToStudy.has(link.source)) themeToStudy.set(link.source, [])
+        themeToStudy.get(link.source).push({ study: link.target, weight: link.weight })
+      }
+    })
+    
+    // Create virtual direct links
+    theoryToTheme.forEach((themes, theoryId) => {
+      themes.forEach(({ theme, weight: weight1 }) => {
+        const studies = themeToStudy.get(theme) || []
+        studies.forEach(({ study, weight: weight2 }) => {
+          if (organizedNodeIds.has(theoryId) && organizedNodeIds.has(study)) {
+            // Average the weights for the virtual link
+            const virtualWeight = Math.round((weight1 + weight2) / 2)
+            finalLinks.push({
+              source: theoryId,
+              target: study,
+              weight: virtualWeight,
+              value: virtualWeight,
+              virtual: true // Mark as virtual for debugging
+            })
+          }
+        })
+      })
+    })
+  } else {
+    // Normal filtering - only include links between organized nodes
+    finalLinks = filteredLinks.filter(link =>
+      organizedNodeIds.has(link.source) && organizedNodeIds.has(link.target)
+    )
+  }
   
   return {
     nodes: organizedNodes,
