@@ -1,0 +1,9 @@
+column,meaning
+source,id of source node
+target,id of target node
+weight,Numeric thickness; usually counts of connections
+edge_type,theory_to_theme or theme_to_study
+code_evidence,Optional evidence snippet/justification
+coder,Who coded the link
+date_coded,Date coded (YYYY-MM-DD)
+note,Any extra notes

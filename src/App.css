@@ -1,0 +1,30 @@
+/* App-specific styles */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive container adjustments */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .control-panel {
+    display: none;
+  }
+  
+  .header {
+    position: static;
+    box-shadow: none;
+  }
+  
+  .sankey-chart-container {
+    page-break-inside: avoid;
+  }
+}

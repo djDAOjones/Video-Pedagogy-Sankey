@@ -1,0 +1,50 @@
+we are going to begin a major update of this project, basicly starting fresh with a brand new code base (the original project, in the obsolete folder, was very lacking and never really a valid MVP)
+
+to begin, can you create a project planning document
+
+the project is to visualise and navigate through academic theories, themes, and research around using video in pedagogy. 
+
+We need ways to filter, search, and modify results, including simplifications for when the visual are too detailed.
+
+It will help uses find relevent research.
+
+The project is a web app, hosted on github pages, using free and open tech.
+
+https://github.com/djDAOjones/Video-Pedagogy-Sankey
+
+It needs to be decently modern, accessbile, and sustainable
+D3 could be a good framework, but D3 doesn't have to be used.
+
+I have a potential data structure in the "data" folder, but this structure can be re-thought if you know a better way. It needs to remain relatively human readable and editable at scale (later we could build a dedicated interface for this, if better)
+
+data_nodes_v2.csv contains the source data for theories, themes, and studies
+
+I would like the user to be able to select whether theories, themes, or studies are used in each stage of the sankey, but the default is: theories > themes > studies. maybe it's a selectable drop down of options.
+
+the theories, themes, and studies all have groupings, which should be optionally collapsable, and collapsed by default id the chart is too busy. the groupings are called "catagory" in data_nodes_v2.csv
+
+the authors field can be overlooked for now, but ultimately it would be good to build in functionality to display authors, and perhaps filter by author and/or link to a URL relating to them.
+
+there are fields for URL, explainer video URL, and description. these fields are not yet populated, but future functionality could incorperate, such as a model on hover that reveals expanded information including authors, URL, and video explainer URL.
+
+there is a long name and a short name. the long name can be used when there is room on the interface, the short name when less room, and perhaps name hidden except for hover if there is very little room or a chance of text overlap.
+
+data_links_v2.csv contains the links to make the sankey connection
+
+the links have a strength which determins the size. the visual size should reflect the strength but perhaps have a toggleable  mode (default on) so there is a minimum size for visibility, and that strong links are bigger but not overpowering, e.g. possibly a log mode or some other scaling. link strength is termed "weight" in the CSV, range is 0-4.
+
+it would be good to have a filter on link strength range, perhaps two handled slider, default is 2-4.
+
+Formulas for Sankey_v2.xlsx helps me to generate unique codes that I can input to the node CSV.
+
+maybe there could be a slider for a global "complexity" of the sankey which removes nodes with lower total link weight, essentially a lower bound filter scaled for the range currently present (might need re-ranging with each filtering action, which maintaining the current value so things dont change unexpededly for the user).
+
+perhaps have an "omit orphans" check box that is on by default, so incomplete data doesn't clutter the results.
+
+it would be good if users can export the results as a PNG or PDF, and also a JSON to reload their settings.
+
+I'm thinking the page order is Title > Chart > Controls
+
+what questions arise regarding interface design?
+
+I'm not sure how to utilise colour and patterns yet, but there could be many interesting options.

@@ -1,0 +1,12 @@
+column,meaning
+id,"Stable unique key with prefix: T_, Th_, A_"
+stage,"1=Theory, 2=Theme, 3=Study"
+label_short,Short label for on-chart display
+label_long,Longer descriptive label for tooltips/search
+category,"Optional grouping/category (e.g., theme cluster)"
+authors,Authors for studies (Stage 3)
+year,Year for studies (Stage 3)
+url,Canonical URL for studies
+url_page,Reference page for theories (optional)
+url_video,Reference video for theories (optional)
+description,Human-readable description (optional)

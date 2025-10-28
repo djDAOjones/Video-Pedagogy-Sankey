@@ -1,0 +1,51 @@
+﻿id,node_class,label_short,label_long,category,authors,year,url,url_page,url_video,description
+TH-COI,Theory,Community of inquiry,Community of inquiry theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-CL-1,Theory,Cognitive load,Cognitive load theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-ML-1,Theory,Multimedia learning,Multimedia learning theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-AL,Theory,Active learning,Active learning theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-SPL,Theory,Systematic perceptual learning,Systematic perceptual learning theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-CL-2,Theory,Constructivist learning,Constructivist learning theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-TD,Theory,Transactional distance,Transactional distance  theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-UDFL,Theory,Universal design for learning,Universal design for learning theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-S,Theory,Self-determination,Self-determination theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-IF,Theory,ICAP Framework,ICAP Framework theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-ML-2,Theory,Multimodal learning,Multimodal learning theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-SC,Theory,Social cognitive,Social cognitive theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-SRL,Theory,Self regulated learning,Self regulated learning theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-SA,Theory,Student agency,Student agency theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-CTOML,Theory,Cognitive theory of multimedia learning,Cognitive theory of multimedia learning theory,,,,,https://www.google.com/,https://www.youtube.com/,
+TH-SP,Theory,Social presence,Social presence theory,,,,,https://www.google.com/,https://www.youtube.com/,
+T001,Theme,Start before perfect,Prioritise intent over production value,Foundational,,,,,,Starting is more valuable than excellence.
+T002,Theme,Align with assessment,Align content with assessment,Foundational,,,,,,Ensure videos directly support assessment objectives.
+T003,Theme,Clarity and activity,Prioritise clarity and active learning,Foundational,,,,,,"Use logical structure, clear explanations, and embed prompts for action or reflection."
+T004,Theme,Chunking,Chunk content within 6 minutes,Foundational,,,,,,Keep videos concise to reduce cognitive load.
+T005,Theme,Learner autonomy,Make videos optional,Foundational,,,,,,Cater for different preferences and allow choice.
+T006,Theme,Accessibility,Maintain accessibility standards,Foundational,,,,,,"Include captions, ensure good audio and readable visuals."
+T007,Theme,Iterative improvement,Iterate and improve,Foundational,,,,,,Gather feedback and refine future videos.
+T008,Theme,Audio and video quality,Obtain good sound and passable visuals,Higher Quality and Presence,,,,,,Prioritise clear audio and acceptable visuals for better engagement.
+T009,Theme,Conversational tone,Informal and conversational tone,Higher Quality and Presence,,,,,,"Use relaxed, human delivery style."
+T010,Theme,Show face,Show presenter√ïs face,Higher Quality and Presence,,,,,,Enhances connection and presence.
+T011,Theme,Summarise,Summarise key points,Higher Quality and Presence,,,,,,Reinforce learning with concise summaries.
+T012,Theme,Weekly updates,Deploy contextual update videos,Higher Quality and Presence,,,,,,Short videos to provide orientation and continuity.
+T013,Theme,Visuals,Use visual content,Design Enhancements,,,,,,"Diagrams, slides, or illustrations support understanding."
+T014,Theme,Demonstration,Use animation or demonstration,Design Enhancements,,,,,,Movement helps show processes√ëeven if roughly executed.
+T015,Theme,Interactivity,Use or pair with interactivity,Design Enhancements,,,,,,Link with activities or use interactive video tools.
+T016,Theme,Cognitive load,Minimise extraneous load,Design Enhancements,,,,,,Remove distractions and stay on message.
+T017,Theme,Universal Design,Adopt universal design principles,Design Enhancements,,,,,,Follow UDL guidelines for inclusive access.
+T018,Theme,Reusability,Design video for reuse,Design Enhancements,,,,,,Avoid time-sensitive references; make content evergreen.
+T019,Theme,Timestamps,Add timestamps,Further Enhancement,,,,,,Improves navigation and supports searchability.
+T020,Theme,Strategic release,Release videos strategically,Further Enhancement,,,,,,Time videos around key milestones or assessments.
+T021,Theme,Video feedback,Deliver feedback via screen capture,Other,,,,,,Use video tools for individualised feedback.
+T022,Theme,Media assignments,Set digital media assignments,Other,,,,,,"Encourage student-created videos, reflections, etc."
+Belt-2021,Study,Belt et al (2021),Video use in online and blended courses: a qualitative synthesis,,Belt & Lowenthal,2021,https://nusearch.nottingham.ac.uk/,,,
+Noetel-2021,Study,Noetel et al (2021),Video Improves Learning in Higher Education: A Systematic Review,,Noetel et al.,2021,https://nusearch.nottingham.ac.uk/,,,
+Chust-Prez-2024,Study,Chust-P¬érez et al (2024),Enhancing visual and plastic education training: a blended learning and flipped classroom approach,,Chust-P¬érez et al.,2024,https://nusearch.nottingham.ac.uk/,,,
+Starke-2021,Study,Starke et al (2021),Effect of gamified perceptual learning on visual detection and discrimination skills in equine gait assessment,,Starke et al.,2021,https://nusearch.nottingham.ac.uk/,,,
+Shek-2023,Study,Shek et al (2023),Use of instructional videos in leadership education in higher education under COVID-19: A qualitative study,,Shek et al.,2023,https://nusearch.nottingham.ac.uk/,,,
+Mutawa-2023,Study,Mutawa et al (2023),The Effectiveness of Using H5P for Undergraduate Students in the Asynchronous Distance Learning Environment,,Mutawa et al.,2023,https://nusearch.nottingham.ac.uk/,,,
+Seo-2021,Study,Seo et al (2021),Active Learning with Online Video: The Impact of Learning Context on Engagement,,Seo et al.,2021,https://nusearch.nottingham.ac.uk/,,,
+Campbell-2022,Study,Campbell et al (2022),Student-created video: an active learning approach in online environments,,"Campbell, Heller & Pulse",2022,https://nusearch.nottingham.ac.uk/,,,
+Litton-2021,Study,Litton (2021),Student-created video: an active learning approach in online environments,,Litton,2021,https://nusearch.nottingham.ac.uk/,,,
+Akapnar-2024,Study,Ak¬çap√µnar et al (2024),Decoding Video Logs: Unveiling Student Engagement,,Ak¬çap√µnar et al.,2024,https://nusearch.nottingham.ac.uk/,,,
+Brame-2016,Study,Brame (2016),Effective Educational Videos: Principles and Guidelines for Maximizing Student Learning from Video Content,,Brame,2016,https://nusearch.nottingham.ac.uk/,,,
+Guo-2014,Study,Guo et al (2014),How Video Production Affects Student Engagement: An Empirical Study of MOOC Videos,,"Guo, Kim & Rubin",2014,https://nusearch.nottingham.ac.uk/,,,
