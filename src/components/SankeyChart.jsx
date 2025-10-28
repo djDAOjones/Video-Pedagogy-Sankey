@@ -36,7 +36,7 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
     const svg = d3.select(svgRef.current)
     svg.selectAll('*').remove()
 
-    const margin = { top: 20, right: 120, bottom: 20, left: 120 }
+    const margin = { top: 40, right: 120, bottom: 20, left: 120 }
     const width = dimensions.width - margin.left - margin.right
     const height = dimensions.height - margin.top - margin.bottom
 
@@ -53,10 +53,49 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
     let filteredNodes = data.nodes.map(d => ({ ...d }))
     let filteredLinks = data.links.map(d => ({ ...d }))
     
-    // Sort and organize nodes by stage order FIRST
+    // Determine the effective stage order (reorder if node is focused)
+    let effectiveStageOrder = [...stageOrder]
+    
+    if (focusedNode) {
+      const focusedStage = focusedNode.node_class
+      const allStages = ['Theory', 'Theme', 'Study']
+      
+      if (stageOrder.length === 3) {
+        // For 3 stages: Put focused stage in center
+        const focusedIndex = stageOrder.indexOf(focusedStage)
+        
+        if (focusedIndex === 0) {
+          // If first stage is focused, rotate right: [A,B,C] -> [C,A,B]
+          effectiveStageOrder = [stageOrder[2], stageOrder[0], stageOrder[1]]
+        } else if (focusedIndex === 2) {
+          // If last stage is focused, rotate left: [A,B,C] -> [B,C,A]
+          effectiveStageOrder = [stageOrder[1], stageOrder[2], stageOrder[0]]
+        }
+        // If middle stage is focused (index === 1), keep original order
+      } else if (stageOrder.length === 2) {
+        // For 2 stages in focus mode: Show all 3 stages with focused in center
+        const otherStages = allStages.filter(s => s !== focusedStage)
+        
+        // Determine which stage was originally adjacent
+        const originalAdjacentStage = stageOrder.find(s => s !== focusedStage)
+        const hiddenStage = otherStages.find(s => s !== originalAdjacentStage)
+        
+        // Place focused stage in center, keep original adjacent on same side
+        const originalIndex = stageOrder.indexOf(focusedStage)
+        if (originalIndex === 0) {
+          // Focused was on left, keep adjacent on right
+          effectiveStageOrder = [hiddenStage, focusedStage, originalAdjacentStage]
+        } else {
+          // Focused was on right, keep adjacent on left
+          effectiveStageOrder = [originalAdjacentStage, focusedStage, hiddenStage]
+        }
+      }
+    }
+    
+    // Sort and organize nodes by effective stage order
     let organizedNodes = []
     const nodesByStage = {}
-    stageOrder.forEach((stage, index) => {
+    effectiveStageOrder.forEach((stage, index) => {
       nodesByStage[stage] = filteredNodes.filter(n => n.node_class === stage)
         .map(node => ({ 
           ...node,
@@ -121,10 +160,10 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
     const sankeyResult = sankeyGenerator(sankeyData)
     const { nodes, links } = sankeyResult
     
-    // Force proper x-positions based on stage order
-    const columnWidth = (width - margin.left - margin.right) / stageOrder.length
+    // Force proper x-positions based on effective stage order
+    const columnWidth = (width - margin.left - margin.right) / effectiveStageOrder.length
     nodes.forEach(node => {
-      const stageIndex = stageOrder.indexOf(node.node_class)
+      const stageIndex = effectiveStageOrder.indexOf(node.node_class)
       if (stageIndex >= 0) {
         const x = margin.left + (stageIndex * columnWidth) + (columnWidth - 15) / 2
         node.x0 = x
@@ -228,6 +267,23 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
         .style('opacity', d => focusedNode && d.id !== focusedNode.id && d.node_class === focusedNode.node_class ? 0 : 1)
         .text(d => getNodeLabel(d, focusedNode ? 200 : d.x1 - d.x0))
     }
+    
+    // Add stage labels at the top
+    const stageLabels = g.append('g')
+      .selectAll('text')
+      .data(effectiveStageOrder)
+      .join('text')
+      .attr('x', (d, i) => {
+        const columnWidth = (width - margin.left - margin.right) / effectiveStageOrder.length
+        return margin.left + (i * columnWidth) + columnWidth / 2
+      })
+      .attr('y', margin.top - 10)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '14px')
+      .attr('font-weight', 'bold')
+      .attr('fill', '#374151')
+      .text(d => d)
+      .style('opacity', focusedNode ? 1 : 0.7)
 
   }, [data, dimensions, displayOptions, focusedNode])
 
@@ -327,16 +383,21 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
     <div ref={containerRef} className="relative w-full">
       {/* Focus mode indicator */}
       {focusedNode && (
-        <div className="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1 rounded-lg shadow-lg flex items-center gap-2 z-10">
-          <span className="text-sm font-medium">
-            Focus: {focusedNode.label_short}
-          </span>
-          <button
-            onClick={() => setFocusedNode(null)}
-            className="ml-2 text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-2 py-0.5 rounded"
-          >
-            ✕ Clear
-          </button>
+        <div className="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1 rounded-lg shadow-lg flex flex-col gap-1 z-10">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">
+              Focus: {focusedNode.label_short}
+            </span>
+            <button
+              onClick={() => setFocusedNode(null)}
+              className="ml-2 text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-2 py-0.5 rounded"
+            >
+              ✕ Clear
+            </button>
+          </div>
+          <div className="text-xs opacity-90">
+            {focusedNode.node_class} centered
+          </div>
         </div>
       )}
       <svg
