@@ -7,9 +7,11 @@ import Papa from 'papaparse'
 export async function loadData() {
   try {
     // Load both CSV files in parallel
+    // Use base path for GitHub Pages deployment
+    const basePath = import.meta.env.BASE_URL || '/'
     const [nodesResponse, linksResponse] = await Promise.all([
-      fetch('/Data/data_nodes_v2.csv'),
-      fetch('/Data/data_links_v2.csv')
+      fetch(`${basePath}Data/data_nodes_v2.csv`),
+      fetch(`${basePath}Data/data_links_v2.csv`)
     ])
 
     if (!nodesResponse.ok || !linksResponse.ok) {

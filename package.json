@@ -9,7 +9,7 @@
   "homepage": "https://djdaojones.github.io/Video-Pedagogy-Sankey",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && cp -r public/Data dist/",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"
