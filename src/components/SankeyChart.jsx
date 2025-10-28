@@ -53,7 +53,23 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
     let filteredNodes = data.nodes.map(d => ({ ...d }))
     let filteredLinks = data.links.map(d => ({ ...d }))
     
-    // Apply focus filter if a node is selected
+    // Sort and organize nodes by stage order FIRST
+    let organizedNodes = []
+    const nodesByStage = {}
+    stageOrder.forEach((stage, index) => {
+      nodesByStage[stage] = filteredNodes.filter(n => n.node_class === stage)
+        .map(node => ({ 
+          ...node,
+          layer: index,
+          x0: undefined,
+          x1: undefined,
+          y0: undefined,
+          y1: undefined
+        }))
+      organizedNodes.push(...nodesByStage[stage])
+    })
+    
+    // THEN apply focus filter if a node is selected
     if (focusedNode) {
       // Get connected nodes - use the original string IDs
       const connectedNodeIds = new Set([focusedNode.id])
@@ -70,7 +86,7 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
       })
       
       // Filter nodes: keep focused node, connected nodes, but hide others in same stage
-      filteredNodes = filteredNodes.filter(node => {
+      organizedNodes = organizedNodes.filter(node => {
         if (node.id === focusedNode.id) return true
         if (node.node_class !== focusedNode.node_class) {
           return connectedNodeIds.has(node.id)
@@ -84,27 +100,7 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
       )
     }
     
-    // Sort and organize nodes by stage order
-    const nodesByStage = {}
-    stageOrder.forEach((stage, index) => {
-      nodesByStage[stage] = filteredNodes.filter(n => n.node_class === stage)
-        .map(node => ({ 
-          ...node,
-          layer: index,
-          x0: undefined,
-          x1: undefined,
-          y0: undefined,
-          y1: undefined
-        }))
-    })
-    
-    // Rebuild nodes array in stage order
-    filteredNodes = []
-    stageOrder.forEach(stage => {
-      if (nodesByStage[stage]) {
-        filteredNodes.push(...nodesByStage[stage])
-      }
-    })
+    filteredNodes = organizedNodes
     
     const sankeyData = {
       nodes: filteredNodes,
@@ -162,6 +158,7 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
       .attr('d', sankeyLinkHorizontal())
       .attr('stroke', (d, i) => `url(#gradient-${i})`)
       .attr('stroke-width', d => scaleLinkWidth(d.weight, displayOptions.scalingMode))
+      .style('opacity', focusedNode ? 0.8 : 1)
       .on('mouseenter', (event, d) => handleLinkHover(event, d))
       .on('mouseleave', () => setTooltipData(null))
 
@@ -186,14 +183,18 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
       .attr('height', d => scaleNodeHeight(d.totalWeight || 0, displayOptions.scalingMode))
       .attr('width', d => d.x1 - d.x0)
       .attr('fill', d => getNodeColor(d))
-      .attr('stroke', '#000')
-      .attr('stroke-width', 1)
-      .attr('stroke-opacity', 0.1)
+      .attr('stroke', d => focusedNode && d.id === focusedNode.id ? '#1e40af' : '#000')
+      .attr('stroke-width', d => focusedNode && d.id === focusedNode.id ? 3 : 1)
+      .attr('stroke-opacity', d => focusedNode && d.id === focusedNode.id ? 1 : 0.1)
       .style('cursor', 'pointer')
-      .style('opacity', d => focusedNode && d.id !== focusedNode.id && d.node_class === focusedNode.node_class ? 0.2 : 1)
+      .style('filter', d => focusedNode && d.id === focusedNode.id ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' : 'none')
       .on('mouseenter', (event, d) => handleNodeHover(event, d))
       .on('mouseleave', () => setTooltipData(null))
       .on('click', (event, d) => handleNodeClick(d))
+    
+    // Add title tooltips to nodes
+    node.append('title')
+      .text(d => `${d.label_short}\nClick to focus on connections`)
 
     // Draw labels if enabled or in focus mode
     if (displayOptions.showLabels || focusedNode) {
