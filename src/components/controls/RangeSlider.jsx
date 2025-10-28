@@ -20,12 +20,12 @@ function RangeSlider({ min, max, value, onChange }) {
   }, [minValue, maxValue, min, max])
 
   const handleMinChange = (e) => {
-    const newMin = Math.min(Number(e.target.value), maxValue - 1)
+    const newMin = Math.min(Number(e.target.value), maxValue)
     onChange([newMin, maxValue])
   }
 
   const handleMaxChange = (e) => {
-    const newMax = Math.max(Number(e.target.value), minValue + 1)
+    const newMax = Math.max(Number(e.target.value), minValue)
     onChange([minValue, newMax])
   }
 

@@ -17,7 +17,7 @@ function App() {
   const [stageOrder, setStageOrder] = useState(['Theory', 'Theme', 'Study'])
   const [filters, setFilters] = useState({
     strengthRange: [2, 4],
-    complexity: 1.0,
+    complexity: 0.5,
     omitOrphans: true
   })
   const [displayOptions, setDisplayOptions] = useState({

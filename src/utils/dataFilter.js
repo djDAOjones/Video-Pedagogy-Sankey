@@ -26,23 +26,43 @@ export function filterData(rawData, filters, stageOrder) {
     return true
   })
   
-  // Step 4: Apply complexity filter (remove nodes with low total weight)
+  // Step 4: Apply complexity filter independently per stage
   if (complexity < 1.0) {
-    const weights = filteredNodes.map(n => n.totalWeight).filter(w => w > 0)
-    if (weights.length > 0) {
-      weights.sort((a, b) => a - b)
-      const threshold = weights[Math.floor(weights.length * (1 - complexity))]
-      
-      filteredNodes = filteredNodes.filter(node => 
-        node.totalWeight >= threshold || node.totalWeight === 0
-      )
-      
-      // Update links to only include those between filtered nodes
-      const nodeIdSet = new Set(filteredNodes.map(n => n.id))
-      filteredLinks = filteredLinks.filter(link =>
-        nodeIdSet.has(link.source) && nodeIdSet.has(link.target)
-      )
+    // Group nodes by stage/class
+    const nodesByClass = {
+      'Theory': filteredNodes.filter(n => n.node_class === 'Theory'),
+      'Theme': filteredNodes.filter(n => n.node_class === 'Theme'),
+      'Study': filteredNodes.filter(n => n.node_class === 'Study')
     }
+    
+    const keptNodes = []
+    
+    // Apply complexity threshold independently for each stage
+    Object.entries(nodesByClass).forEach(([className, classNodes]) => {
+      if (classNodes.length > 0) {
+        const weights = classNodes.map(n => n.totalWeight).filter(w => w > 0)
+        if (weights.length > 0) {
+          weights.sort((a, b) => a - b)
+          const threshold = weights[Math.floor(weights.length * (1 - complexity))]
+          
+          const keptClassNodes = classNodes.filter(node => 
+            node.totalWeight >= threshold || node.totalWeight === 0
+          )
+          keptNodes.push(...keptClassNodes)
+        } else {
+          // If no nodes with weights, keep all nodes of this class
+          keptNodes.push(...classNodes)
+        }
+      }
+    })
+    
+    filteredNodes = keptNodes
+    
+    // Update links to only include those between filtered nodes
+    const nodeIdSet = new Set(filteredNodes.map(n => n.id))
+    filteredLinks = filteredLinks.filter(link =>
+      nodeIdSet.has(link.source) && nodeIdSet.has(link.target)
+    )
   }
   
   // Step 5: Organize nodes by stage order
