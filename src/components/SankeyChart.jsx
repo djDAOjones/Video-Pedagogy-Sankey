@@ -71,11 +71,13 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
     
     // THEN apply focus filter if a node is selected
     if (focusedNode) {
-      // Get connected nodes - use the original string IDs
+      console.log('Focus mode active for node:', focusedNode)
+      
+      // Get connected nodes using the filtered links (which may include virtual links)
       const connectedNodeIds = new Set([focusedNode.id])
       
-      // Find all connected nodes from the original links data
-      data.links.forEach(link => {
+      // Find all connected nodes from the filtered links
+      filteredLinks.forEach(link => {
         // links at this point still have string IDs for source/target
         if (link.source === focusedNode.id) {
           connectedNodeIds.add(link.target)
@@ -85,19 +87,37 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
         }
       })
       
-      // Filter nodes: keep focused node, connected nodes, but hide others in same stage
-      organizedNodes = organizedNodes.filter(node => {
-        if (node.id === focusedNode.id) return true
-        if (node.node_class !== focusedNode.node_class) {
-          return connectedNodeIds.has(node.id)
+      console.log('Connected node IDs:', Array.from(connectedNodeIds))
+      
+      // Filter nodes: keep focused node and all connected nodes
+      const filteredOrganizedNodes = organizedNodes.filter(node => {
+        // Always keep the focused node
+        if (node.id === focusedNode.id) {
+          return true
         }
-        return false // Hide other nodes in the same stage
+        // Keep connected nodes from other stages
+        if (connectedNodeIds.has(node.id)) {
+          return true
+        }
+        // Hide everything else
+        return false
       })
       
-      // Filter links to only show those connected to focused node
-      filteredLinks = filteredLinks.filter(link => 
-        link.source === focusedNode.id || link.target === focusedNode.id
-      )
+      console.log('Filtered nodes count:', filteredOrganizedNodes.length)
+      
+      // Only proceed if we have nodes to display
+      if (filteredOrganizedNodes.length > 0) {
+        organizedNodes = filteredOrganizedNodes
+        
+        // Filter links to only show those connected to focused node
+        filteredLinks = filteredLinks.filter(link => 
+          link.source === focusedNode.id || link.target === focusedNode.id
+        )
+        
+        console.log('Filtered links count:', filteredLinks.length)
+      } else {
+        console.warn('No nodes after filtering, keeping original data')
+      }
     }
     
     filteredNodes = organizedNodes
@@ -273,16 +293,18 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
   function handleNodeClick(node) {
     // Toggle focus on the clicked node
     // Extract just the essential data to avoid circular references
-    if (focusedNode && focusedNode.id === node.id) {
+    const nodeData = {
+      id: typeof node === 'object' ? node.id : node,
+      node_class: node.node_class || data.nodes.find(n => n.id === (node.id || node))?.node_class,
+      label_short: node.label_short || data.nodes.find(n => n.id === (node.id || node))?.label_short,
+      label_long: node.label_long || data.nodes.find(n => n.id === (node.id || node))?.label_long
+    }
+    
+    if (focusedNode && focusedNode.id === nodeData.id) {
       setFocusedNode(null) // Clear focus if clicking the same node
     } else {
       // Store only essential node data to avoid D3's circular references
-      setFocusedNode({
-        id: node.id,
-        node_class: node.node_class,
-        label_short: node.label_short,
-        label_long: node.label_long
-      })
+      setFocusedNode(nodeData)
     }
   }
 
