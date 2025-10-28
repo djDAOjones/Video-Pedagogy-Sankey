@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import * as d3 from 'd3'
-import { sankey, sankeyLinkHorizontal } from 'd3-sankey'
+import { sankey, sankeyLinkHorizontal, sankeyLeft } from 'd3-sankey'
 import { scaleLinkWidth } from '../utils/dataFilter'
 import Tooltip from './Tooltip'
 
@@ -45,7 +45,7 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
       .nodeWidth(15)
       .nodePadding(10)
       .extent([[margin.left, margin.top], [width, height]])
-      .nodeAlign(d3.sankeyLeft)
+      .nodeAlign(sankeyLeft)
 
     // Prepare data for D3 Sankey
     const sankeyData = {
