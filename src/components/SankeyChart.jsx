@@ -47,14 +47,7 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
       .nodePadding(10)
       .extent([[margin.left, margin.top], [width, height]])
       .nodeAlign(sankeyLeft)
-      .nodeSort((a, b) => {
-        // Sort nodes by their assigned column/stage order
-        if (a.column !== b.column) {
-          return a.column - b.column
-        }
-        // If same column, maintain original order
-        return 0
-      })
+      .nodeSort(null) // Disable sorting to maintain our order
 
     // Prepare data for D3 Sankey with focus filtering
     let filteredNodes = data.nodes.map(d => ({ ...d }))
@@ -91,12 +84,26 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
       )
     }
     
-    // Ensure nodes have column property set based on stage order
-    filteredNodes.forEach(node => {
-      const stageIndex = stageOrder.indexOf(node.node_class)
-      node.column = stageIndex >= 0 ? stageIndex : 0
-      node.layer = stageIndex >= 0 ? stageIndex : 0  // D3-sankey might use layer
-      node.depth = stageIndex >= 0 ? stageIndex : 0  // Or depth
+    // Sort and organize nodes by stage order
+    const nodesByStage = {}
+    stageOrder.forEach((stage, index) => {
+      nodesByStage[stage] = filteredNodes.filter(n => n.node_class === stage)
+        .map(node => ({ 
+          ...node,
+          layer: index,
+          x0: undefined,
+          x1: undefined,
+          y0: undefined,
+          y1: undefined
+        }))
+    })
+    
+    // Rebuild nodes array in stage order
+    filteredNodes = []
+    stageOrder.forEach(stage => {
+      if (nodesByStage[stage]) {
+        filteredNodes.push(...nodesByStage[stage])
+      }
     })
     
     const sankeyData = {
@@ -105,7 +112,19 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
     }
 
     // Generate Sankey layout
-    const { nodes, links } = sankeyGenerator(sankeyData)
+    const sankeyResult = sankeyGenerator(sankeyData)
+    const { nodes, links } = sankeyResult
+    
+    // Force proper x-positions based on stage order
+    const columnWidth = (width - margin.left - margin.right) / stageOrder.length
+    nodes.forEach(node => {
+      const stageIndex = stageOrder.indexOf(node.node_class)
+      if (stageIndex >= 0) {
+        const x = margin.left + (stageIndex * columnWidth) + (columnWidth - 15) / 2
+        node.x0 = x
+        node.x1 = x + 15 // nodeWidth
+      }
+    })
 
     // Create main group
     const g = svg.append('g')
