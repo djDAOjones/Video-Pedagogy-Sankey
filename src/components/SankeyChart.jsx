@@ -47,6 +47,14 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
       .nodePadding(10)
       .extent([[margin.left, margin.top], [width, height]])
       .nodeAlign(sankeyLeft)
+      .nodeSort((a, b) => {
+        // Sort nodes by their assigned column/stage order
+        if (a.column !== b.column) {
+          return a.column - b.column
+        }
+        // If same column, maintain original order
+        return 0
+      })
 
     // Prepare data for D3 Sankey with focus filtering
     let filteredNodes = data.nodes.map(d => ({ ...d }))
@@ -54,12 +62,17 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
     
     // Apply focus filter if a node is selected
     if (focusedNode) {
-      // Get connected nodes
+      // Get connected nodes - use the original string IDs
       const connectedNodeIds = new Set([focusedNode.id])
-      filteredLinks.forEach(link => {
-        if (link.source === focusedNode.id || link.target === focusedNode.id) {
-          connectedNodeIds.add(link.source)
+      
+      // Find all connected nodes from the original links data
+      data.links.forEach(link => {
+        // links at this point still have string IDs for source/target
+        if (link.source === focusedNode.id) {
           connectedNodeIds.add(link.target)
+        }
+        if (link.target === focusedNode.id) {
+          connectedNodeIds.add(link.source)
         }
       })
       
@@ -77,6 +90,14 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
         link.source === focusedNode.id || link.target === focusedNode.id
       )
     }
+    
+    // Ensure nodes have column property set based on stage order
+    filteredNodes.forEach(node => {
+      const stageIndex = stageOrder.indexOf(node.node_class)
+      node.column = stageIndex >= 0 ? stageIndex : 0
+      node.layer = stageIndex >= 0 ? stageIndex : 0  // D3-sankey might use layer
+      node.depth = stageIndex >= 0 ? stageIndex : 0  // Or depth
+    })
     
     const sankeyData = {
       nodes: filteredNodes,

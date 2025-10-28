@@ -65,12 +65,18 @@ export function filterData(rawData, filters, stageOrder) {
     )
   }
   
-  // Step 5: Organize nodes by stage order
+  // Step 5: Organize nodes by stage order (may filter out stages)
   const organizedNodes = organizeNodesByStage(filteredNodes, stageOrder)
+  
+  // Step 6: Update links to only include those between organized nodes
+  const organizedNodeIds = new Set(organizedNodes.map(n => n.id))
+  const finalLinks = filteredLinks.filter(link =>
+    organizedNodeIds.has(link.source) && organizedNodeIds.has(link.target)
+  )
   
   return {
     nodes: organizedNodes,
-    links: filteredLinks
+    links: finalLinks
   }
 }
 
@@ -78,20 +84,18 @@ export function filterData(rawData, filters, stageOrder) {
  * Organize nodes according to the stage order
  */
 function organizeNodesByStage(nodes, stageOrder) {
-  // Create a map of nodes by class
-  const nodesByClass = {
-    Theory: nodes.filter(n => n.node_class === 'Theory'),
-    Theme: nodes.filter(n => n.node_class === 'Theme'),
-    Study: nodes.filter(n => n.node_class === 'Study')
-  }
+  // Filter out nodes that aren't in the current stage order
+  const filteredNodes = nodes.filter(node => 
+    stageOrder.includes(node.node_class)
+  )
   
-  // Assign stage/column index to each node
-  nodes.forEach(node => {
+  // Assign stage/column index to each remaining node
+  filteredNodes.forEach(node => {
     const stageIndex = stageOrder.indexOf(node.node_class)
     node.column = stageIndex >= 0 ? stageIndex : 0
   })
   
-  return nodes
+  return filteredNodes
 }
 
 /**
