@@ -1,79 +1,53 @@
 import React, { useState } from 'react'
 
 function StageSelector({ currentOrder, onChange }) {
-  const [localOrder, setLocalOrder] = useState(currentOrder)
   const [numStages, setNumStages] = useState(currentOrder.length)
-  
-  const availableStages = ['Theory', 'Theme', 'Study']
+  const [selectedPreset, setSelectedPreset] = useState(null)
   
   const presetOrders = {
     3: [
       { name: 'Theory → Theme → Study', order: ['Theory', 'Theme', 'Study'] },
       { name: 'Study → Theme → Theory', order: ['Study', 'Theme', 'Theory'] },
-      { name: 'Theme → Theory → Study', order: ['Theme', 'Theory', 'Study'] }
+      { name: 'Theme → Theory → Study', order: ['Theme', 'Theory', 'Study'] },
+      { name: 'Theory → Study → Theme', order: ['Theory', 'Study', 'Theme'] },
+      { name: 'Theme → Study → Theory', order: ['Theme', 'Study', 'Theory'] },
+      { name: 'Study → Theory → Theme', order: ['Study', 'Theory', 'Theme'] }
     ],
     2: [
       { name: 'Theory → Theme', order: ['Theory', 'Theme'] },
       { name: 'Theory → Study', order: ['Theory', 'Study'] },
       { name: 'Theme → Study', order: ['Theme', 'Study'] },
-      { name: 'Study → Theory', order: ['Study', 'Theory'] }
+      { name: 'Theme → Theory', order: ['Theme', 'Theory'] },
+      { name: 'Study → Theory', order: ['Study', 'Theory'] },
+      { name: 'Study → Theme', order: ['Study', 'Theme'] }
     ]
   }
 
-  const handleStageChange = (position, newStage) => {
-    const newOrder = [...localOrder]
-    
-    // Remove the stage if it already exists elsewhere within current stages
-    const currentStages = newOrder.slice(0, numStages)
-    const existingIndex = currentStages.indexOf(newStage)
-    if (existingIndex !== -1 && existingIndex !== position) {
-      // Find a stage not in current order to replace it with
-      const usedStages = new Set(currentStages)
-      usedStages.delete(currentStages[existingIndex])
-      usedStages.add(newStage)
-      const unusedStage = availableStages.find(s => !usedStages.has(s))
-      if (unusedStage) {
-        newOrder[existingIndex] = unusedStage
-      }
-    }
-    
-    newOrder[position] = newStage
-    setLocalOrder(newOrder)
-    onChange(newOrder.slice(0, numStages))
+  const handlePresetSelect = (preset) => {
+    setSelectedPreset(preset.name)
+    onChange(preset.order)
   }
   
   const handleNumStagesChange = (num) => {
     setNumStages(num)
-    const newOrder = num === 2 
-      ? ['Theory', 'Theme'] 
-      : ['Theory', 'Theme', 'Study']
-    setLocalOrder(newOrder)
-    onChange(newOrder)
-  }
-
-  const handlePresetSelect = (preset) => {
-    const fullOrder = [...preset.order]
-    // Pad with unused stages if needed
-    while (fullOrder.length < 3) {
-      const unusedStage = availableStages.find(s => !fullOrder.includes(s))
-      if (unusedStage) fullOrder.push(unusedStage)
-    }
-    setLocalOrder(fullOrder)
-    setNumStages(preset.order.length)
-    onChange(preset.order)
+    setSelectedPreset(null)
+    // Set default preset for the new number of stages
+    const defaultPreset = presetOrders[num][0]
+    onChange(defaultPreset.order)
+    setSelectedPreset(defaultPreset.name)
   }
 
   return (
     <div className="space-y-4">
       {/* Number of Stages Toggle */}
-      <div className="flex items-center gap-4">
-        <span className="text-sm font-medium text-gray-700">Number of stages:</span>
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium text-gray-700">Stages:</span>
         <div className="flex gap-2">
           <button
             onClick={() => handleNumStagesChange(2)}
-            className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+            className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${
               numStages === 2
-                ? 'bg-blue-600 text-white'
+                ? 'bg-blue-600 text-white shadow-sm'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -81,9 +55,9 @@ function StageSelector({ currentOrder, onChange }) {
           </button>
           <button
             onClick={() => handleNumStagesChange(3)}
-            className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+            className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${
               numStages === 3
-                ? 'bg-blue-600 text-white'
+                ? 'bg-blue-600 text-white shadow-sm'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -92,38 +66,18 @@ function StageSelector({ currentOrder, onChange }) {
         </div>
       </div>
 
-      {/* Custom Order Selectors */}
-      <div className="flex items-center gap-2">
-        {localOrder.slice(0, numStages).map((stage, index) => (
-          <React.Fragment key={index}>
-            {index > 0 && (
-              <span className="text-gray-400 font-bold">→</span>
-            )}
-            <select
-              value={stage}
-              onChange={(e) => handleStageChange(index, e.target.value)}
-              className="control-input py-1 px-2 text-sm"
-            >
-              {availableStages.map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </React.Fragment>
-        ))}
-      </div>
-
-      {/* Preset Buttons */}
+      {/* Flow Direction Presets */}
       <div>
-        <p className="text-xs text-gray-600 mb-2">Quick presets:</p>
-        <div className="flex flex-wrap gap-2">
+        <p className="text-xs text-gray-600 mb-2">Flow direction:</p>
+        <div className="grid grid-cols-2 gap-2">
           {presetOrders[numStages].map(preset => (
             <button
               key={preset.name}
               onClick={() => handlePresetSelect(preset)}
-              className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                JSON.stringify(preset.order) === JSON.stringify(localOrder.slice(0, numStages))
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              className={`px-3 py-2 text-xs rounded-lg transition-all ${
+                selectedPreset === preset.name
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
               }`}
             >
               {preset.name}

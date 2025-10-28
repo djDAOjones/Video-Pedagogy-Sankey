@@ -7,8 +7,9 @@ import Tooltip from './Tooltip'
 function SankeyChart({ data, displayOptions, stageOrder }) {
   const svgRef = useRef(null)
   const containerRef = useRef(null)
-  const [dimensions, setDimensions] = useState({ width: 1000, height: 600 })
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const [tooltipData, setTooltipData] = useState(null)
+  const [focusedNode, setFocusedNode] = useState(null)
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
 
   // Handle resize
@@ -47,10 +48,39 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
       .extent([[margin.left, margin.top], [width, height]])
       .nodeAlign(sankeyLeft)
 
-    // Prepare data for D3 Sankey
+    // Prepare data for D3 Sankey with focus filtering
+    let filteredNodes = data.nodes.map(d => ({ ...d }))
+    let filteredLinks = data.links.map(d => ({ ...d }))
+    
+    // Apply focus filter if a node is selected
+    if (focusedNode) {
+      // Get connected nodes
+      const connectedNodeIds = new Set([focusedNode.id])
+      filteredLinks.forEach(link => {
+        if (link.source === focusedNode.id || link.target === focusedNode.id) {
+          connectedNodeIds.add(link.source)
+          connectedNodeIds.add(link.target)
+        }
+      })
+      
+      // Filter nodes: keep focused node, connected nodes, but hide others in same stage
+      filteredNodes = filteredNodes.filter(node => {
+        if (node.id === focusedNode.id) return true
+        if (node.node_class !== focusedNode.node_class) {
+          return connectedNodeIds.has(node.id)
+        }
+        return false // Hide other nodes in the same stage
+      })
+      
+      // Filter links to only show those connected to focused node
+      filteredLinks = filteredLinks.filter(link => 
+        link.source === focusedNode.id || link.target === focusedNode.id
+      )
+    }
+    
     const sankeyData = {
-      nodes: data.nodes.map(d => ({ ...d })),
-      links: data.links.map(d => ({ ...d }))
+      nodes: filteredNodes,
+      links: filteredLinks
     }
 
     // Generate Sankey layout
@@ -95,41 +125,60 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
       .on('mouseenter', (event, d) => handleLinkHover(event, d))
       .on('mouseleave', () => setTooltipData(null))
 
-    // Draw nodes
+    // Calculate node sizing based on total weight
+    const nodeScale = d3.scaleLinear()
+      .domain([0, d3.max(nodes, d => d.totalWeight) || 1])
+      .range([10, 60]) // Min and max node height in pixels
+    
+    // Draw nodes with scaled height
     const node = g.append('g')
       .selectAll('rect')
       .data(nodes)
       .join('rect')
       .attr('class', 'sankey-node')
       .attr('x', d => d.x0)
-      .attr('y', d => d.y0)
-      .attr('height', d => d.y1 - d.y0)
+      .attr('y', d => {
+        // Center the scaled node within the allocated space
+        const allocatedHeight = d.y1 - d.y0
+        const scaledHeight = scaleNodeHeight(d.totalWeight || 0, displayOptions.scalingMode)
+        return d.y0 + (allocatedHeight - scaledHeight) / 2
+      })
+      .attr('height', d => scaleNodeHeight(d.totalWeight || 0, displayOptions.scalingMode))
       .attr('width', d => d.x1 - d.x0)
       .attr('fill', d => getNodeColor(d))
       .attr('stroke', '#000')
       .attr('stroke-width', 1)
       .attr('stroke-opacity', 0.1)
+      .style('cursor', 'pointer')
+      .style('opacity', d => focusedNode && d.id !== focusedNode.id && d.node_class === focusedNode.node_class ? 0.2 : 1)
       .on('mouseenter', (event, d) => handleNodeHover(event, d))
       .on('mouseleave', () => setTooltipData(null))
       .on('click', (event, d) => handleNodeClick(d))
 
-    // Draw labels if enabled
-    if (displayOptions.showLabels) {
+    // Draw labels if enabled or in focus mode
+    if (displayOptions.showLabels || focusedNode) {
       const labels = g.append('g')
         .selectAll('text')
         .data(nodes)
         .join('text')
         .attr('class', 'sankey-label')
         .attr('x', d => d.x0 < width / 2 ? d.x0 - 6 : d.x1 + 6)
-        .attr('y', d => (d.y1 + d.y0) / 2)
+        .attr('y', d => {
+          // Align label with centered node
+          const allocatedHeight = d.y1 - d.y0
+          const scaledHeight = scaleNodeHeight(d.totalWeight || 0, displayOptions.scalingMode)
+          return d.y0 + allocatedHeight / 2
+        })
         .attr('dy', '0.35em')
         .attr('text-anchor', d => d.x0 < width / 2 ? 'end' : 'start')
-        .attr('font-size', '12px')
+        .attr('font-size', focusedNode ? '14px' : '12px')
+        .attr('font-weight', focusedNode && d.id === focusedNode.id ? 'bold' : 'normal')
         .attr('fill', '#374151')
-        .text(d => getNodeLabel(d, d.x1 - d.x0))
+        .style('opacity', d => focusedNode && d.id !== focusedNode.id && d.node_class === focusedNode.node_class ? 0 : 1)
+        .text(d => getNodeLabel(d, focusedNode ? 200 : d.x1 - d.x0))
     }
 
-  }, [data, dimensions, displayOptions])
+  }, [data, dimensions, displayOptions, focusedNode])
 
   // Helper functions
   function getNodeColor(node) {
@@ -181,12 +230,55 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
   }
 
   function handleNodeClick(node) {
-    // Could open modal or expand details
-    console.log('Node clicked:', node)
+    // Toggle focus on the clicked node
+    if (focusedNode && focusedNode.id === node.id) {
+      setFocusedNode(null) // Clear focus if clicking the same node
+    } else {
+      setFocusedNode(node) // Set focus on the new node
+    }
+  }
+
+  // Add node height scaling function
+  function scaleNodeHeight(totalWeight, mode = 'linear') {
+    const MIN_HEIGHT = 20
+    const MAX_HEIGHT = 80
+    const maxWeight = Math.max(...data.nodes.map(n => n.totalWeight || 0), 1)
+    const normalizedWeight = totalWeight / maxWeight
+    
+    switch (mode) {
+      case 'logarithmic':
+        // Logarithmic scaling for better visibility of nodes with low weights
+        return MIN_HEIGHT + Math.log(normalizedWeight * 4 + 1) * 
+               (MAX_HEIGHT - MIN_HEIGHT) / Math.log(5)
+      
+      case 'square-root':
+        // Square root scaling for balanced approach
+        return MIN_HEIGHT + Math.sqrt(normalizedWeight) * 
+               (MAX_HEIGHT - MIN_HEIGHT)
+      
+      case 'linear':
+      default:
+        // Linear scaling
+        return MIN_HEIGHT + normalizedWeight * (MAX_HEIGHT - MIN_HEIGHT)
+    }
   }
 
   return (
     <div ref={containerRef} className="relative w-full">
+      {/* Focus mode indicator */}
+      {focusedNode && (
+        <div className="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1 rounded-lg shadow-lg flex items-center gap-2 z-10">
+          <span className="text-sm font-medium">
+            Focus: {focusedNode.label_short}
+          </span>
+          <button
+            onClick={() => setFocusedNode(null)}
+            className="ml-2 text-xs bg-white bg-opacity-20 hover:bg-opacity-30 px-2 py-0.5 rounded"
+          >
+            ✕ Clear
+          </button>
+        </div>
+      )}
       <svg
         ref={svgRef}
         width={dimensions.width}
