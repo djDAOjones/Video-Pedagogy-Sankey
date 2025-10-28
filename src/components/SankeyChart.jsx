@@ -71,8 +71,6 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
     
     // THEN apply focus filter if a node is selected
     if (focusedNode) {
-      console.log('Focus mode active for node:', focusedNode)
-      
       // Get connected nodes using the filtered links (which may include virtual links)
       const connectedNodeIds = new Set([focusedNode.id])
       
@@ -86,8 +84,6 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
           connectedNodeIds.add(link.source)
         }
       })
-      
-      console.log('Connected node IDs:', Array.from(connectedNodeIds))
       
       // Filter nodes: keep focused node and all connected nodes
       const filteredOrganizedNodes = organizedNodes.filter(node => {
@@ -103,8 +99,6 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
         return false
       })
       
-      console.log('Filtered nodes count:', filteredOrganizedNodes.length)
-      
       // Only proceed if we have nodes to display
       if (filteredOrganizedNodes.length > 0) {
         organizedNodes = filteredOrganizedNodes
@@ -113,10 +107,6 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
         filteredLinks = filteredLinks.filter(link => 
           link.source === focusedNode.id || link.target === focusedNode.id
         )
-        
-        console.log('Filtered links count:', filteredLinks.length)
-      } else {
-        console.warn('No nodes after filtering, keeping original data')
       }
     }
     
@@ -233,7 +223,7 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
         .attr('dy', '0.35em')
         .attr('text-anchor', d => d.x0 < width / 2 ? 'end' : 'start')
         .attr('font-size', focusedNode ? '14px' : '12px')
-        .attr('font-weight', focusedNode && d.id === focusedNode.id ? 'bold' : 'normal')
+        .attr('font-weight', d => focusedNode && d.id === focusedNode.id ? 'bold' : 'normal')
         .attr('fill', '#374151')
         .style('opacity', d => focusedNode && d.id !== focusedNode.id && d.node_class === focusedNode.node_class ? 0 : 1)
         .text(d => getNodeLabel(d, focusedNode ? 200 : d.x1 - d.x0))
