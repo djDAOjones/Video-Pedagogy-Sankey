@@ -401,6 +401,7 @@ function SankeyChart({ data, displayOptions, stageOrder }) {
         </div>
       )}
       <svg
+        id="sankey-svg"
         ref={svgRef}
         width={dimensions.width}
         height={dimensions.height}

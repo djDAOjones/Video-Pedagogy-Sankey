@@ -3,6 +3,44 @@ import jsPDF from 'jspdf'
 import { saveAs } from 'file-saver'
 
 /**
+ * Convert SVG to canvas using native browser APIs
+ */
+function svgToCanvas(svgElement, scale = 2) {
+  return new Promise((resolve, reject) => {
+    try {
+      const svgData = new XMLSerializer().serializeToString(svgElement)
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      const img = new Image()
+      
+      // Get SVG dimensions
+      const bbox = svgElement.getBoundingClientRect()
+      canvas.width = bbox.width * scale
+      canvas.height = bbox.height * scale
+      
+      img.onload = () => {
+        // Fill with white background
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        
+        // Draw the image
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        resolve(canvas)
+      }
+      
+      img.onerror = (err) => reject(new Error('Failed to load SVG image'))
+      
+      // Create blob URL from SVG data
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      img.src = url
+    } catch (error) {
+      reject(error)
+    }
+  })
+}
+
+/**
  * Export the SVG visualization as PNG
  */
 export async function exportToPNG(elementId) {
@@ -10,31 +48,17 @@ export async function exportToPNG(elementId) {
     const svgElement = document.getElementById(elementId)
     if (!svgElement) throw new Error('SVG element not found')
 
-    // Create a clone for export
-    const clone = svgElement.cloneNode(true)
-    clone.style.backgroundColor = 'white'
-    
-    // Create temporary container
-    const container = document.createElement('div')
-    container.style.position = 'absolute'
-    container.style.left = '-9999px'
-    container.appendChild(clone)
-    document.body.appendChild(container)
-
-    // Convert to canvas
-    const canvas = await html2canvas(container, {
-      backgroundColor: '#ffffff',
-      scale: 2, // Higher quality
-      logging: false
-    })
-
-    // Clean up
-    document.body.removeChild(container)
+    // Convert SVG to canvas
+    const canvas = await svgToCanvas(svgElement, 2)
 
     // Convert to blob and save
     canvas.toBlob((blob) => {
-      const fileName = `video-pedagogy-sankey-${Date.now()}.png`
-      saveAs(blob, fileName)
+      if (blob) {
+        const fileName = `video-pedagogy-sankey-${Date.now()}.png`
+        saveAs(blob, fileName)
+      } else {
+        throw new Error('Failed to create image blob')
+      }
     })
   } catch (error) {
     console.error('PNG export error:', error)
@@ -50,39 +74,24 @@ export async function exportToPDF(elementId) {
     const svgElement = document.getElementById(elementId)
     if (!svgElement) throw new Error('SVG element not found')
 
-    // Create a clone for export
-    const clone = svgElement.cloneNode(true)
-    clone.style.backgroundColor = 'white'
+    // Convert SVG to canvas
+    const canvas = await svgToCanvas(svgElement, 2)
+
+    // Get canvas dimensions
+    const canvasWidth = canvas.width
+    const canvasHeight = canvas.height
     
-    // Create temporary container
-    const container = document.createElement('div')
-    container.style.position = 'absolute'
-    container.style.left = '-9999px'
-    container.appendChild(clone)
-    document.body.appendChild(container)
-
-    // Convert to canvas
-    const canvas = await html2canvas(container, {
-      backgroundColor: '#ffffff',
-      scale: 2,
-      logging: false
-    })
-
-    // Clean up
-    document.body.removeChild(container)
-
-    // Create PDF
-    const imgWidth = 297 // A4 width in mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width
+    // Create PDF with appropriate orientation
+    const orientation = canvasHeight > canvasWidth ? 'portrait' : 'landscape'
     const pdf = new jsPDF({
-      orientation: imgHeight > imgWidth ? 'portrait' : 'landscape',
-      unit: 'mm',
-      format: 'a4'
+      orientation,
+      unit: 'px',
+      format: [canvasWidth, canvasHeight]
     })
 
     // Add image to PDF
     const imgData = canvas.toDataURL('image/png')
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
+    pdf.addImage(imgData, 'PNG', 0, 0, canvasWidth, canvasHeight)
 
     // Add metadata
     pdf.setProperties({
