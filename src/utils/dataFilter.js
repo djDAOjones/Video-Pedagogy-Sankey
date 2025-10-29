@@ -1,24 +1,29 @@
 /**
  * Filter data based on current filter settings
  */
-export function filterData(rawData, filters, stageOrder) {
+export function filterData(rawData, filters, stageOrder, searchFilter = { term: '', mode: 'loose' }) {
   const { nodes, links } = rawData
   const { strengthRange, complexity, omitOrphans } = filters
   
-  // Step 1: Filter links by strength
+  // Step 1: Apply search filter if present
+  let filteredNodes = searchFilter.term 
+    ? searchNodes(nodes, searchFilter.term, searchFilter.mode)
+    : [...nodes]
+  
+  // Step 2: Filter links by strength
   let filteredLinks = links.filter(link => 
     link.weight >= strengthRange[0] && link.weight <= strengthRange[1]
   )
   
-  // Step 2: Identify nodes that have connections after link filtering
+  // Step 3: Identify nodes that have connections after link filtering
   const connectedNodeIds = new Set()
   filteredLinks.forEach(link => {
     connectedNodeIds.add(link.source)
     connectedNodeIds.add(link.target)
   })
   
-  // Step 3: Filter nodes based on connection and orphan settings
-  let filteredNodes = nodes.filter(node => {
+  // Step 4: Filter nodes based on connection and orphan settings
+  filteredNodes = filteredNodes.filter(node => {
     const isConnected = connectedNodeIds.has(node.id)
     if (omitOrphans && !isConnected) {
       return false
@@ -26,6 +31,7 @@ export function filterData(rawData, filters, stageOrder) {
     return true
   })
   
+  // Step 5: Apply complexity filter independently per stage
   // Step 4: Apply complexity filter independently per stage
   if (complexity < 1.0) {
     // Group nodes by stage/class
@@ -226,25 +232,36 @@ export function applyCategoryGrouping(data, collapsedCategories) {
 }
 
 /**
- * Search nodes by text
+ * Search nodes by text with strict or loose matching
  */
-export function searchNodes(nodes, searchTerm) {
+export function searchNodes(nodes, searchTerm, mode = 'loose') {
   if (!searchTerm || searchTerm.trim() === '') {
     return nodes
   }
   
-  const term = searchTerm.toLowerCase()
+  const term = searchTerm.toLowerCase().trim()
   
   return nodes.filter(node => {
-    const searchableText = [
+    const searchableFields = [
+      node.id,
       node.label_short,
       node.label_long,
       node.category,
       node.authors,
-      node.description
-    ].join(' ').toLowerCase()
+      node.description,
+      node.year?.toString()
+    ].filter(field => field) // Remove null/undefined values
     
-    return searchableText.includes(term)
+    if (mode === 'strict') {
+      // Strict mode: exact match in any field
+      return searchableFields.some(field => 
+        field.toLowerCase().trim() === term
+      )
+    } else {
+      // Loose mode: contains the search term
+      const searchableText = searchableFields.join(' ').toLowerCase()
+      return searchableText.includes(term)
+    }
   })
 }
 

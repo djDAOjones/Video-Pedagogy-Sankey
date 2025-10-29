@@ -1,6 +1,20 @@
-import React from 'react'
+import React, { useState } from 'react'
 
-function Header() {
+function Header({ onSearchChange }) {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [searchMode, setSearchMode] = useState('loose') // 'loose' or 'strict'
+  
+  const handleSearchChange = (term) => {
+    setSearchTerm(term)
+    onSearchChange({ term, mode: searchMode })
+  }
+  
+  const handleModeToggle = () => {
+    const newMode = searchMode === 'loose' ? 'strict' : 'loose'
+    setSearchMode(newMode)
+    onSearchChange({ term: searchTerm, mode: newMode })
+  }
+  
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="container mx-auto px-4 py-4">
@@ -12,6 +26,54 @@ function Header() {
             <p className="text-sm text-gray-600 mt-1">
               Visualizing connections between theories, themes, and studies in video-based education
             </p>
+          </div>
+          
+          {/* Search Bar */}
+          <div className="flex items-center gap-2 flex-1 max-w-md mx-4">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search nodes..."
+                className="w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <svg 
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                />
+              </svg>
+            </div>
+            <button
+              onClick={handleModeToggle}
+              className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
+                searchMode === 'strict' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+              title={searchMode === 'strict' ? 'Strict search: exact match' : 'Loose search: contains text'}
+            >
+              {searchMode === 'strict' ? 'Strict' : 'Loose'}
+            </button>
+            {searchTerm && (
+              <button
+                onClick={() => handleSearchChange('')}
+                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                title="Clear search"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
           
           <div className="flex items-center gap-4">

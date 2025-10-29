@@ -15,6 +15,7 @@ function App() {
 
   // Configuration state
   const [stageOrder, setStageOrder] = useState(['Theory', 'Theme', 'Study'])
+  const [searchFilter, setSearchFilter] = useState({ term: '', mode: 'loose' })
   const [filters, setFilters] = useState({
     strengthRange: [2, 4],
     complexity: 0.5,
@@ -46,10 +47,10 @@ function App() {
   // Apply filters when data or filters change
   useEffect(() => {
     if (rawData.nodes.length > 0) {
-      const filtered = filterData(rawData, filters, stageOrder)
+      const filtered = filterData(rawData, filters, stageOrder, searchFilter)
       setFilteredData(filtered)
     }
-  }, [rawData, filters, stageOrder])
+  }, [rawData, filters, stageOrder, searchFilter])
 
   // Filter update handlers
   const handleFilterChange = (newFilters) => {
@@ -62,6 +63,10 @@ function App() {
 
   const handleDisplayOptionsChange = (newOptions) => {
     setDisplayOptions(prev => ({ ...prev, ...newOptions }))
+  }
+
+  const handleSearchChange = (search) => {
+    setSearchFilter(search)
   }
 
   if (loading) {
@@ -89,9 +94,21 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
+      <Header onSearchChange={handleSearchChange} />
       
       <main className="flex-1 container mx-auto px-4 py-6">
+        {searchFilter.term && (
+          <div className="mb-4 px-2">
+            <p className="text-sm text-gray-600">
+              Search results for <span className="font-semibold">"{searchFilter.term}"</span> 
+              ({searchFilter.mode} mode): 
+              <span className="font-bold text-blue-600 ml-1">
+                {filteredData.nodes.length} nodes, {filteredData.links.length} links
+              </span>
+            </p>
+          </div>
+        )}
+        
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <SankeyChart
             data={filteredData}
